@@ -1,44 +1,20 @@
 package com.yelemang.androidmvidemo
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.channels.Channel
+import com.yelemang.androidmvidemo.base.BaseState
+import com.yelemang.androidmvidemo.base.BaseViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 import java.lang.Exception
 
-class MainViewModel : ViewModel(){
-    val mainIntent = Channel<MainIntent>(Channel.UNLIMITED)
-    private val _state = MutableStateFlow<MainState>(MainState.LoadingState)
-    val state: StateFlow<MainState>
-        get() = _state
-
-    init {
-        handleIntent()
-    }
-
-    /**
-     * 处理意图
-     */
-    private fun handleIntent() {
-        viewModelScope.launch {
-            mainIntent.consumeAsFlow().collect {
-                when (it) {
-                    is MainIntent.LoginIntent -> check(it)
-                }
-            }
-        }
-    }
+class MainViewModel : BaseViewModel<MainIntent>(){
 
     private fun check(loginIntent:MainIntent.LoginIntent) {
         viewModelScope.launch {
-            _state.value = MainState.LoadingState
+            state.value = BaseState.LoadingState
             //模拟接口请求延时
             delay(3000)
-            _state.value = try {
+            state.value = try {
                 if(loginIntent.account == "1234" && loginIntent.password == "1234"){
                     MainState.LoginSuccessState
                 }else{
@@ -46,6 +22,15 @@ class MainViewModel : ViewModel(){
                 }
             } catch (e: Exception) {
                 MainState.LoginFailureState(0,e.message.toString())
+            }
+            state.value = BaseState.HideState
+        }
+    }
+
+    override fun handleIntent(intent: MainIntent) {
+        when(intent){
+            is MainIntent.LoginIntent->{
+                check(intent)
             }
         }
     }

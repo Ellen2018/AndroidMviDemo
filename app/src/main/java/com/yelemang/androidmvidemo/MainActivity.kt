@@ -13,8 +13,10 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
+import com.yelemang.androidmvidemo.base.BaseState
 import com.yelemang.androidmvidemo.databinding.ActivityMainBinding
 import com.yelemang.androidmvidemo.ext.click
+import com.yelemang.androidmvidemo.ext.toast
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -29,14 +31,14 @@ class MainActivity : AppCompatActivity() {
         binding.btSuccess.click {
             //成功
             lifecycleScope.launch {
-                mainViewModel.mainIntent.send(MainIntent.LoginIntent("1234","1234"))
+                mainViewModel.intent.send(MainIntent.LoginIntent("1234","1234"))
             }
         }
 
         binding.btFailure.click {
             //失败
             lifecycleScope.launch {
-                mainViewModel.mainIntent.send(MainIntent.LoginIntent("12134","12134"))
+                mainViewModel.intent.send(MainIntent.LoginIntent("12134","12134"))
             }
         }
 
@@ -44,17 +46,22 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             mainViewModel.state.collect {
                 when(it){
+                    is BaseState.InitState->{
+                        toast("初始化中...")
+                    }
                     is MainState.LoginSuccessState->{
-                        binding.loading.visibility = View.GONE
-                        Toast.makeText(this@MainActivity,"登录成功",Toast.LENGTH_SHORT).show()
+                        toast("登录成功")
                     }
                     is MainState.LoginFailureState->{
-                        binding.loading.visibility = View.GONE
                         Toast.makeText(this@MainActivity,it.errorMsg,Toast.LENGTH_SHORT).show()
                     }
-                    is MainState.LoadingState->{
+                    is BaseState.LoadingState->{
                         //显示Loading视图
                         binding.loading.visibility = View.VISIBLE
+                    }
+                    is BaseState.HideState->{
+                        //隐藏Loading视图
+                        binding.loading.visibility = View.GONE
                     }
                 }
             }
